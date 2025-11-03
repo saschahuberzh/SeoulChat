@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/database');
 
+
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: '15m',
@@ -12,6 +13,7 @@ const generateTokens = (userId) => {
 
   return { accessToken, refreshToken };
 };
+
 
 const handleTokenRefresh = async (refreshTokenFromCookie, res) => {
   try {
@@ -32,9 +34,7 @@ const handleTokenRefresh = async (refreshTokenFromCookie, res) => {
 
     const { user } = existingToken;
 
-    await prisma.refreshToken.delete({
-      where: { id: existingToken.id },
-    });
+    await prisma.refreshToken.delete({ where: { id: existingToken.id } });
 
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
       generateTokens(user.id);
@@ -92,7 +92,8 @@ const verifyToken = async (req, res, next) => {
     const refreshWindow = 5 * 60; // 5 minutes
 
     if (decoded.exp - nowInSeconds < refreshWindow && refreshTokenFromCookie) {
-      await handleTokenRefresh(refreshTokenFromCookie, res);
+      const newUserId = await handleTokenRefresh(refreshTokenFromCookie, res);
+      if (newUserId) req.userId = newUserId;
     }
 
     return next();
