@@ -116,6 +116,10 @@ const me = async (req, res) => {
         email: true,
         createdAt: true,
         updatedAt: true,
+        displayName: true,
+        statusMessage: true,
+        status: true,
+        avatarUrl: true,
       },
     });
 
