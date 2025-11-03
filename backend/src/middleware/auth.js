@@ -19,39 +19,52 @@ const handleTokenRefresh = async (refreshTokenFromCookie, res) => {
       refreshTokenFromCookie,
       process.env.JWT_REFRESH_SECRET
     );
-    const user = await prisma.user.findUnique({
-      where: { id: decodedRefresh.userId },
+
+    const existingToken = await prisma.refreshToken.findUnique({
+      where: { token: refreshTokenFromCookie },
+      include: { user: true },
     });
 
-    if (!user || user.refreshToken !== refreshTokenFromCookie) {
+    if (!existingToken || existingToken.user.id !== decodedRefresh.userId) {
+      console.error('Invalid or mismatched refresh token.');
       return null;
     }
+
+    const { user } = existingToken;
+
+    await prisma.refreshToken.delete({
+      where: { id: existingToken.id },
+    });
 
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
       generateTokens(user.id);
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken: newRefreshToken },
+    await prisma.refreshToken.create({
+      data: {
+        token: newRefreshToken,
+        userId: user.id,
+      },
     });
 
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 15 * 60 * 1000,
+      maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     return user.id;
   } catch (refreshError) {
     console.error('Token refresh failed:', refreshError.message);
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
     return null;
   }
 };
@@ -60,7 +73,15 @@ const verifyToken = async (req, res, next) => {
   const { accessToken, refreshToken: refreshTokenFromCookie } = req.cookies;
 
   if (!accessToken) {
-    return res.status(401).json({ error: 'No token provided' });
+    if (refreshTokenFromCookie) {
+      const newUserId = await handleTokenRefresh(refreshTokenFromCookie, res);
+      if (newUserId) {
+        req.userId = newUserId;
+        return next();
+      }
+      return res.status(401).json({ error: 'Session expired. Please log in again.' });
+    }
+    return res.status(401).json({ error: 'Authentication required. No token provided.' });
   }
 
   try {
@@ -68,10 +89,10 @@ const verifyToken = async (req, res, next) => {
     req.userId = decoded.userId;
 
     const nowInSeconds = Math.floor(Date.now() / 1000);
-    const refreshWindow = 5 * 60; 
+    const refreshWindow = 5 * 60; // 5 minutes
 
     if (decoded.exp - nowInSeconds < refreshWindow && refreshTokenFromCookie) {
-      handleTokenRefresh(refreshTokenFromCookie, res);
+      await handleTokenRefresh(refreshTokenFromCookie, res);
     }
 
     return next();
@@ -82,10 +103,10 @@ const verifyToken = async (req, res, next) => {
         req.userId = newUserId;
         return next();
       }
-      return res.status(401).json({ error: 'Token refresh failed' });
+      return res.status(401).json({ error: 'Session expired. Please log in again.' });
     }
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: 'Invalid or expired token.' });
   }
 };
 
-module.exports = { verifyToken };
+module.exports = { verifyToken, generateTokens };

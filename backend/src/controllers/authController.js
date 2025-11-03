@@ -1,22 +1,6 @@
 const prisma = require('../config/database');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-
-const generateTokens = (userId) => {
-  const accessToken = jwt.sign(
-    { userId },
-    process.env.JWT_SECRET,
-    { expiresIn: '15m' }
-  );
-
-  const refreshToken = jwt.sign(
-    { userId },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: '7d' }
-  );
-
-  return { accessToken, refreshToken };
-};
+const { generateTokens } = require('../middleware/auth');
 
 
 const register = async (req, res) => {
@@ -47,9 +31,11 @@ const register = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user.id);
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken },
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+      },
     });
 
     res.cookie('accessToken', accessToken, {
@@ -105,9 +91,11 @@ const login = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user.id);
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken },
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+      },
     });
 
     res.cookie('accessToken', accessToken, {
@@ -169,16 +157,9 @@ const logout = async (req, res) => {
     const { refreshToken } = req.cookies;
 
     if (refreshToken) {
-      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-      if (decoded && decoded.userId) {
-        await prisma.user.updateMany({
-          where: {
-            id: decoded.userId,
-            refreshToken: refreshToken,
-          },
-          data: { refreshToken: null },
-        });
-      }
+      await prisma.refreshToken.deleteMany({
+        where: { token: refreshToken },
+      });
     }
   } catch (error) {
     console.error('Logout error during token invalidation:', error.message);
