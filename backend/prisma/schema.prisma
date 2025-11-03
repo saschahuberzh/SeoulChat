@@ -15,7 +15,7 @@ enum UserStatus {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            String    @id @default(uuid())
   username      String    @unique
   password      String
   email         String?   @unique
@@ -37,12 +37,12 @@ model RefreshToken {
   id        Int      @id @default(autoincrement())
   token     String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  userId    String
   createdAt DateTime @default(now())
 }
 
 model Group {
-  id            Int       @id @default(autoincrement())
+  id            String    @id @default(uuid())
   name          String
   isPrivateChat Boolean?
   avatarUrl     String?
@@ -53,19 +53,19 @@ model Group {
 
 model UserGroup {
   user      User   @relation(fields: [userID], references: [id], onDelete: Cascade)
-  userID    Int
+  userID    String
   group     Group  @relation(fields: [groupID], references: [id], onDelete: Cascade)
-  groupID   Int
+  groupID   String
   
   @@id([userID, groupID])
 }
 
 model Message {
-  id        Int     @id @default(autoincrement())
+  id        String  @id @default(uuid())
   sender    User    @relation(fields: [senderID], references: [id], onDelete: Cascade)
-  senderID  Int
+  senderID  String
   group     Group   @relation(fields: [groupID], references: [id], onDelete: Cascade)
-  groupID   Int
+  groupID   String
   content   String
   createdAt DateTime @default(now())
 }
@@ -80,5 +80,5 @@ model Log {
   ipAddress    String?
   createdAt    DateTime @default(now())
   user         User?    @relation(fields: [userID], references: [id], onDelete: SetNull)
-  userID       Int?
+  userID       String?
 }

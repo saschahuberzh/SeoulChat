@@ -31,6 +31,11 @@ const { verifyToken } = require('../middleware/auth');
  *                 type: string
  *                 format: password
  *                 example: securePassword123
+ *               displayName: 
+ *                 type: string
+ *                 example: John Doe
+ *                 nullable: true
+ *
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -50,6 +55,7 @@ const { verifyToken } = require('../middleware/auth');
  *                       type: string
  *                     email:
  *                       type: string
+ *                    
  *       400:
  *         description: Missing required fields
  *       409:
