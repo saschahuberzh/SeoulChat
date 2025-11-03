@@ -170,4 +170,24 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { register, login, me, logout };
+const logoutAll = async (req, res) => {
+  try {
+    const { userId } = req;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    await prisma.refreshToken.deleteMany({
+      where: { userId: userId },
+    });
+  } catch (error) {
+    console.error('Logout from all devices error:', error.message);
+  } finally {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    return res.status(200).json({ message: 'Successfully logged out from all devices' });
+  }
+};
+
+module.exports = { register, login, me, logout, logoutAll };

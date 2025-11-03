@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, me, logout } = require('../controllers/authController');
+const { register, login, me, logout, logoutAll } = require('../controllers/authController');
 const { verifyToken } = require('../middleware/auth');
 
 /**
@@ -161,5 +161,25 @@ router.get('/me', verifyToken, me);
  *         description: Logout failed on the server, but cookies might still be cleared.
  */
 router.post('/logout', logout);
+
+/**
+ * @swagger
+ * /auth/logout-all:
+ *   post:
+ *     summary: Logout user from all devices
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - bearerAuth: []
+ *     description: Invalidates all refresh tokens for the current user on the server and clears authentication cookies for the current session.
+ *     responses:
+ *       200:
+ *         description: Successfully logged out from all devices.
+ *       401:
+ *         description: Unauthorized (token missing, invalid, or expired)
+ *       500:
+ *         description: Server error during logout process.
+ */
+router.post('/logout-all', verifyToken, logoutAll);
 
 module.exports = router;
