@@ -34,7 +34,17 @@ SeoulChat enables secure, private, and reliable communication between users thro
 ## ⚙️ Installation
 
 1. Clone the repository
-2. Execute: docker-compuse up
+2. Check docker compose for env
+3. Execute: docker-compose up
+
+--
+
+## ⚙️ Development
+
+1. Clone the repository
+2. Execute: docker-compose up
+3. Nodemon detects changes in the js and updates the docker container.
+
 
 ---
 

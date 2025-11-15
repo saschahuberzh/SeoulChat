@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  online
+  away
+  do_not_disturb
+  hidden
+}
+
+model User {
+  id            String    @id @default(uuid())
+  username      String    @unique
+  password      String
+  email         String?   @unique
+  displayName   String?
+  avatarUrl     String?
+  status        UserStatus @default(online)
+  statusMessage String?
+  lastSeen      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  refreshTokens RefreshToken[]
+  groups        UserGroup[]
+  messages      Message[]
+  logs          Log[]
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+}
+
+model Group {
+  id            String    @id @default(uuid())
+  name          String
+  isPrivateChat Boolean?
+  avatarUrl     String?
+  
+  users         UserGroup[]
+  messages      Message[]
+}
+
+model UserGroup {
+  user      User   @relation(fields: [userID], references: [id], onDelete: Cascade)
+  userID    String
+  group     Group  @relation(fields: [groupID], references: [id], onDelete: Cascade)
+  groupID   String
+  
+  @@id([userID, groupID])
+}
+
+model Message {
+  id        String  @id @default(uuid())
+  sender    User    @relation(fields: [senderID], references: [id], onDelete: Cascade)
+  senderID  String
+  group     Group   @relation(fields: [groupID], references: [id], onDelete: Cascade)
+  groupID   String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Log {
+  id           Int      @id @default(autoincrement())
+  method       String
+  url          String
+  status       Int?
+  responseTime Int?
+  userAgent    String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userID], references: [id], onDelete: SetNull)
+  userID       String?
+}
