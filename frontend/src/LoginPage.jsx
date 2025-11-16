@@ -1,6 +1,6 @@
 // src/components/LoginPage.jsx
 import React, { useState } from "react";
-import "./../styles/LoginPage.css";
+import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -33,7 +33,7 @@ export default function LoginPage() {
 
   return (
     <div className="login-container">
-      <img src="/logo.png" alt="SeoulTech Logo" className="logo" />
+      <img src="./public/SeoulTechLogo.png" alt="SeoulTech Logo" className="logo" />
       <h1 className="title">Seoul Chat</h1>
       <form onSubmit={handleSubmit}>
         <div className="input-group">
