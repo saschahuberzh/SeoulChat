@@ -32,20 +32,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <img src="./public/SeoulTechLogo.png" alt="SeoulTech Logo" className="logo" />
-      <h1 className="title">Seoul Chat</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="input-group">
-          <label>Username</label>
-          <input type="text" value={username} onChange={(e)=>setUsername(e.target.value)} />
-        </div>
-        <div className="input-group">
-          <label>Password</label>
-          <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
-        </div>
-        <button type="submit" className="login-btn">Log in</button>
-      </form>
+    <div id="login-page">
+      <div className="login-container">
+        <img src="./public/SeoulTechLogo.png" alt="SeoulTech Logo" className="logo" />
+        <h1 className="title">Seoul Chat</h1>
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label>Username</label>
+            <input type="text" value={username} onChange={(e)=>setUsername(e.target.value)} />
+          </div>
+          <div className="input-group">
+            <label>Password</label>
+            <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+          </div>
+          <button type="submit" className="login-btn">Log in</button>
+        </form>
+      </div>
     </div>
   );
 }
