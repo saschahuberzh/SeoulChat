@@ -22,6 +22,9 @@ export default function LoginPage() {
         {
           username,
           password,
+        },
+        {
+          withCredentials: true,   // <--- das ist der Schlüssel
         }
       );
 
