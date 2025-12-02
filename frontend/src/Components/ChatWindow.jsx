@@ -1,3 +1,4 @@
+// src/components/ChatWindow.jsx
 import React, { useEffect, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -6,7 +7,10 @@ export default function ChatWindow({ chat, currentUserId }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [sending, setSending] = useState(false);
 
+  // load messages when chat changes
   useEffect(() => {
     if (!chat || !chat.id) {
       setMessages([]);
@@ -60,6 +64,55 @@ export default function ChatWindow({ chat, currentUserId }) {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "";
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!chat.id || !newMessage.trim() || sending) return;
+
+    setSending(true);
+    setError("");
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/chats/${chat.id}/messages`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ content: newMessage.trim() }),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`Failed to send message: ${res.status}`);
+      }
+
+      const created = await res.json(); // assuming API returns the created message
+
+      // append new message to list (fallback if API returns nothing)
+      setMessages((prev) => [
+        ...prev,
+        created && created.id
+          ? created
+          : {
+              id: `local-${Date.now()}`,
+              content: newMessage.trim(),
+              createdAt: new Date().toISOString(),
+              senderId: currentUserId,
+              sender: { id: currentUserId, username: "You" },
+            },
+      ]);
+
+      setNewMessage("");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Could not send message.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -142,6 +195,25 @@ export default function ChatWindow({ chat, currentUserId }) {
           );
         })}
       </div>
+
+      {/* input area */}
+      <form style={styles.inputRow} onSubmit={handleSendMessage}>
+        <input
+          type="text"
+          placeholder="Type a message…"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          style={styles.input}
+          disabled={sending || !chat.id}
+        />
+        <button
+          type="submit"
+          style={styles.sendButton}
+          disabled={sending || !newMessage.trim() || !chat.id}
+        >
+          {sending ? "Sending…" : "Send"}
+        </button>
+      </form>
     </div>
   );
 }
@@ -201,6 +273,7 @@ const styles = {
     borderRadius: 8,
     color: "#b91c1c",
     fontSize: 13,
+    marginBottom: 8,
   },
   messageRow: {
     display: "flex",
@@ -250,5 +323,30 @@ const styles = {
     fontSize: 14,
     color: "#111827",
     wordBreak: "break-word",
+  },
+  inputRow: {
+    marginTop: 12,
+    borderTop: "1px solid #e5e7eb",
+    paddingTop: 8,
+    display: "flex",
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    padding: "8px 12px",
+    borderRadius: 999,
+    border: "1px solid #d1d5db",
+    fontSize: 14,
+    outline: "none",
+  },
+  sendButton: {
+    padding: "8px 16px",
+    borderRadius: 999,
+    border: "none",
+    background: "#2563eb",
+    color: "#ffffff",
+    fontWeight: 500,
+    cursor: "pointer",
+    fontSize: 14,
   },
 };
