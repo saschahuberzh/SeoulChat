@@ -1,4 +1,3 @@
-// src/components/LoginPage.jsx
 import React, { useState } from "react";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
@@ -11,41 +10,62 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!username || !password) {
       alert("Please fill in both fields.");
       return;
     }
 
     try {
-      // Example API call to backend auth endpoint
       const res = await axios.post(
-        import.meta.env.VITE_API_URL + "/auth/login",
-        { username, password },
-        { withCredentials: true }
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        {
+          username,
+          password,
+        }
       );
 
-      // On success navigate to chat
+      console.log("Logged in:", res.data);
+
       navigate("/chat");
     } catch (err) {
-      alert(err?.response?.data?.message || "Login failed");
+      alert(err?.response?.data?.error || "Login failed");
     }
   };
 
   return (
     <div id="login-page">
       <div className="login-container">
-        <img src="./public/SeoulTechLogo.png" alt="SeoulTech Logo" className="logo" />
+        <img
+          src="/SeoulTechLogo.png"
+          alt="SeoulTech Logo"
+          className="logo"
+        />
+
         <h1 className="title">Seoul Chat</h1>
+
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label>Username</label>
-            <input type="text" value={username} onChange={(e)=>setUsername(e.target.value)} />
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
           </div>
+
           <div className="input-group">
             <label>Password</label>
-            <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
-          <button type="submit" className="login-btn">Log in</button>
+
+          <button type="submit" className="login-btn">
+            Log in
+          </button>
         </form>
       </div>
     </div>
