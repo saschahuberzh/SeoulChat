@@ -116,4 +116,31 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-module.exports = { verifyToken, generateTokens };
+const verifySocketToken = async (socket, next) => {
+  const cookieHeader = socket.handshake.headers.cookie;
+  if (!cookieHeader) {
+    return next(new Error('Authentication error: No cookies found'));
+  }
+
+  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    if (key && value) acc[key] = decodeURIComponent(value);
+    return acc;
+  }, {});
+
+  const accessToken = cookies.accessToken;
+
+  if (!accessToken) {
+    return next(new Error('Authentication error: No access token'));
+  }
+
+  try {
+    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+    socket.user = { id: decoded.userId };
+    next();
+  } catch (error) {
+    return next(new Error('Authentication error: Invalid token'));
+  }
+};
+
+module.exports = { verifyToken, generateTokens, verifySocketToken };
