@@ -1,9 +1,37 @@
-import React, { useState } from "react";
-import UserSearch from "./UserSearch";
-import ChatList from "./ChatList";
+// src/pages/ChatPage.jsx
+import React, { useEffect, useState } from "react";
+import UserSearch from "./Components/UserSearch";
+import ChatList from "./Components/ChatList";
+import ChatWindow from "./Components/ChatWindow";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export default function ChatPage() {
   const [activeChat, setActiveChat] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Load the currently logged-in user
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
+          method: "GET",
+          credentials: "include", // send JWT cookies
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load user");
+        }
+
+        const data = await res.json();
+        setCurrentUser(data); // save full user object
+      } catch (err) {
+        console.error("Error loading current user:", err);
+      }
+    };
+
+    loadUser();
+  }, []);
 
   return (
     <div
@@ -17,39 +45,20 @@ export default function ChatPage() {
       }}
     >
       <div style={{ width: "100%", maxWidth: 1100, display: "flex", gap: 24 }}>
+        
+        {/* Left column */}
         <div style={{ flex: 1 }}>
           <ChatList onChatSelect={setActiveChat} />
           <div style={{ height: 24 }} />
           <UserSearch onChatCreated={(chat) => setActiveChat(chat)} />
         </div>
 
-        <div
-          style={{
-            flex: 1,
-            background: "#ffffff",
-            borderRadius: 16,
-            padding: 24,
-            boxShadow:
-              "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)",
-          }}
-        >
-          {activeChat ? (
-            <>
-              <h2 style={{ marginTop: 0 }}>{activeChat.name || "Chat"}</h2>
-              <pre
-                style={{
-                  fontSize: 12,
-                  background: "#f3f4f6",
-                  padding: 12,
-                  borderRadius: 8,
-                }}
-              >
-                {JSON.stringify(activeChat, null, 2)}
-              </pre>
-            </>
-          ) : (
-            <p>Select a chat from the left, or create a new one using search.</p>
-          )}
+        {/* Right column */}
+        <div style={{ flex: 1, minHeight: 400 }}>
+          <ChatWindow
+            chat={activeChat}
+            currentUserId={currentUser?.id}   // THIS IS THE IMPORTANT PART
+          />
         </div>
       </div>
     </div>
