@@ -1,5 +1,6 @@
 // src/components/ChatWindow.jsx
 import React, { useEffect, useState } from "react";
+import { socket } from "../socket";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -10,7 +11,7 @@ export default function ChatWindow({ chat, currentUserId }) {
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-  // load messages when chat changes
+  // Load messages when chat changes
   useEffect(() => {
     if (!chat || !chat.id) {
       setMessages([]);
@@ -35,7 +36,7 @@ export default function ChatWindow({ chat, currentUserId }) {
           throw new Error(`Failed to load messages: ${res.status}`);
         }
 
-        const data = await res.json(); // array of messages
+        const data = await res.json();
         setMessages(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
@@ -46,6 +47,31 @@ export default function ChatWindow({ chat, currentUserId }) {
     };
 
     loadMessages();
+  }, [chat?.id]);
+
+  // WebSocket: listen for new messages
+  useEffect(() => {
+    if (!chat || !chat.id) return;
+
+    const chatId = chat.id;
+
+    const handleNewMessage = (msg) => {
+      // Backend doc: msg.groupID is the chat id
+      const msgChatId = msg.groupID;
+
+      if (msgChatId !== chatId) return;
+
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev; // avoid duplicates
+        return [...prev, msg];
+      });
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
   }, [chat?.id]);
 
   if (!chat) {
@@ -90,22 +116,9 @@ export default function ChatWindow({ chat, currentUserId }) {
         throw new Error(`Failed to send message: ${res.status}`);
       }
 
-      const created = await res.json(); // assuming API returns the created message
-
-      // append new message to list (fallback if API returns nothing)
-      setMessages((prev) => [
-        ...prev,
-        created && created.id
-          ? created
-          : {
-              id: `local-${Date.now()}`,
-              content: newMessage.trim(),
-              createdAt: new Date().toISOString(),
-              senderId: currentUserId,
-              sender: { id: currentUserId, username: "You" },
-            },
-      ]);
-
+      // We do NOT push the message into state here.
+      // The server will emit "newMessage" and the listener above will handle it.
+      await res.json().catch(() => {}); // ignore body if not needed
       setNewMessage("");
     } catch (err) {
       console.error(err);
@@ -140,7 +153,6 @@ export default function ChatWindow({ chat, currentUserId }) {
 
         {messages.map((msg) => {
           const sender = msg.sender || {};
-          // handle different possible property names from backend
           const senderId = msg.senderId || msg.senderID || sender.id;
 
           const isOwnMessage =
@@ -159,7 +171,6 @@ export default function ChatWindow({ chat, currentUserId }) {
                 justifyContent: isOwnMessage ? "flex-end" : "flex-start",
               }}
             >
-              {/* avatar only on the left side (other user) */}
               {!isOwnMessage && (
                 <div style={styles.avatarWrapper}>
                   {sender.avatarUrl ? (
