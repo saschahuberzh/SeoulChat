@@ -24,7 +24,8 @@ const dbStream = {
     try {
       const parts = message.trim().split(' ');
       const ipAddress = parts[0];
-      const userId = parts[1] !== 'null' ? parseInt(parts[1], 10) : null;
+      // userId is a UUID string, do not parseInt
+      const userId = parts[1] !== 'null' ? parts[1] : null;
       const method = parts[2];
       const url = parts[3];
       const status = parseInt(parts[4], 10);

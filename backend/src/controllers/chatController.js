@@ -108,6 +108,7 @@ const getUserChats = async (req, res) => {
           }
         },
         messages: {
+          take: 1,
           orderBy: {
             createdAt: 'desc'
           }

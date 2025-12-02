@@ -1,4 +1,5 @@
 const prisma = require('../config/database');
+const { getIO } = require('../socket');
 
 const sendMessage = async (req, res) => {
   const { chatId } = req.params;
@@ -40,9 +41,12 @@ const sendMessage = async (req, res) => {
       }
     });
 
-    // Emit Socket.io event to notify other users in the room
-    if (req.io) {
-      req.io.to(chatId).emit('newMessage', message);
+    try {
+      const io = getIO();
+      io.to(chatId).emit('newMessage', message);
+      console.log(`Message emitted to chat ${chatId}`);
+    } catch (error) {
+      console.error('Socket.io not initialized:', error);
     }
 
     res.status(201).json(message);
