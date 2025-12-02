@@ -77,6 +77,7 @@ const verifyToken = async (req, res, next) => {
       const newUserId = await handleTokenRefresh(refreshTokenFromCookie, res);
       if (newUserId) {
         req.userId = newUserId;
+        req.user = { id: newUserId };
         return next();
       }
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
@@ -87,13 +88,17 @@ const verifyToken = async (req, res, next) => {
   try {
     const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
     req.userId = decoded.userId;
+    req.user = { id: decoded.userId };
 
     const nowInSeconds = Math.floor(Date.now() / 1000);
     const refreshWindow = 5 * 60; // 5 minutes
 
     if (decoded.exp - nowInSeconds < refreshWindow && refreshTokenFromCookie) {
       const newUserId = await handleTokenRefresh(refreshTokenFromCookie, res);
-      if (newUserId) req.userId = newUserId;
+      if (newUserId) {
+        req.userId = newUserId;
+        req.user = { id: newUserId };
+      }
     }
 
     return next();
@@ -102,6 +107,7 @@ const verifyToken = async (req, res, next) => {
       const newUserId = await handleTokenRefresh(refreshTokenFromCookie, res);
       if (newUserId) {
         req.userId = newUserId;
+        req.user = { id: newUserId };
         return next();
       }
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
@@ -110,4 +116,31 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-module.exports = { verifyToken, generateTokens };
+const verifySocketToken = async (socket, next) => {
+  const cookieHeader = socket.handshake.headers.cookie;
+  if (!cookieHeader) {
+    return next(new Error('Authentication error: No cookies found'));
+  }
+
+  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    if (key && value) acc[key] = decodeURIComponent(value);
+    return acc;
+  }, {});
+
+  const accessToken = cookies.accessToken;
+
+  if (!accessToken) {
+    return next(new Error('Authentication error: No access token'));
+  }
+
+  try {
+    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+    socket.user = { id: decoded.userId };
+    next();
+  } catch (error) {
+    return next(new Error('Authentication error: Invalid token'));
+  }
+};
+
+module.exports = { verifyToken, generateTokens, verifySocketToken };
