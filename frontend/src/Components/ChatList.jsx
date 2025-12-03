@@ -1,5 +1,4 @@
-// src/components/ChatList.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -16,14 +15,14 @@ export default function ChatList({ onChatSelect }) {
       try {
         const res = await fetch(`${API_BASE_URL}/chats`, {
           method: "GET",
-          credentials: "include", // send JWT cookies
+          credentials: "include",
         });
 
         if (!res.ok) {
           throw new Error(`Server error: ${res.status}`);
         }
 
-        const data = await res.json(); // expects an array like in your screenshot
+        const data = await res.json();
         setChats(data);
       } catch (err) {
         console.error(err);
@@ -73,7 +72,6 @@ export default function ChatList({ onChatSelect }) {
               onClick={() => onChatSelect && onChatSelect(chat)}
             >
               <div style={styles.chatMain}>
-                {/* Avatar area – use first user as representative */}
                 <div style={styles.avatarWrapper}>
                   {users[0]?.avatarUrl ? (
                     <img
@@ -87,7 +85,6 @@ export default function ChatList({ onChatSelect }) {
                         users[0]?.username ||
                         chatName[0] ||
                         "?")
-                        .toString()
                         .charAt(0)
                         .toUpperCase()}
                     </div>
@@ -102,7 +99,6 @@ export default function ChatList({ onChatSelect }) {
                     )}
                   </div>
 
-                  {/* Show users in the chat */}
                   <div style={styles.usersRow}>
                     {users.map((u) => (
                       <div key={u.id} style={styles.userChip}>
@@ -119,6 +115,7 @@ export default function ChatList({ onChatSelect }) {
                     ))}
                   </div>
                 </div>
+
               </div>
             </button>
           );
@@ -128,7 +125,6 @@ export default function ChatList({ onChatSelect }) {
   );
 }
 
-// Styling reused / aligned with UserSearch
 const styles = {
   card: {
     width: "100%",
@@ -161,11 +157,16 @@ const styles = {
     color: "#6b7280",
     marginBottom: "8px",
   },
+
   resultsWrapper: {
     marginTop: "8px",
     display: "flex",
     flexDirection: "column",
     gap: "10px",
+
+    maxHeight: "280px",
+    overflowY: "auto",
+    paddingRight: "4px",
   },
 
   chatCard: {
@@ -182,21 +183,22 @@ const styles = {
     cursor: "pointer",
     textAlign: "left",
   },
+
   chatMain: {
     display: "flex",
     alignItems: "center",
     gap: "12px",
     flex: 1,
   },
-  avatarWrapper: {
-    flexShrink: 0,
-  },
+
+  avatarWrapper: { flexShrink: 0 },
   avatar: {
     width: "40px",
     height: "40px",
     borderRadius: "999px",
     objectFit: "cover",
   },
+
   avatarFallback: {
     width: "40px",
     height: "40px",
@@ -209,22 +211,22 @@ const styles = {
     fontSize: "18px",
     color: "#374151",
   },
-  chatInfo: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-  },
+
+  chatInfo: { flex: 1, display: "flex", flexDirection: "column" },
+
   chatHeader: {
     display: "flex",
     alignItems: "center",
     gap: "8px",
     marginBottom: "4px",
   },
+
   displayName: {
     fontWeight: "600",
     fontSize: "15px",
     color: "#111827",
   },
+
   chatBadge: {
     fontSize: "11px",
     padding: "2px 8px",
@@ -233,11 +235,9 @@ const styles = {
     color: "#0369a1",
     fontWeight: "500",
   },
-  usersRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "6px",
-  },
+
+  usersRow: { display: "flex", flexWrap: "wrap", gap: "6px" },
+
   userChip: {
     display: "flex",
     alignItems: "center",
@@ -246,10 +246,12 @@ const styles = {
     borderRadius: "999px",
     background: "#e5e7eb",
   },
+
   userChipText: {
     fontSize: "12px",
     color: "#374151",
   },
+
   statusDot: {
     width: "8px",
     height: "8px",

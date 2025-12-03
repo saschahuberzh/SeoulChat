@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { socket } from "../socket";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -9,6 +9,8 @@ export default function ChatWindow({ chat, currentUserId }) {
   const [error, setError] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+
+  const messagesContainerRef = useRef(null);
 
   // Load messages when chat changes
   useEffect(() => {
@@ -72,6 +74,13 @@ export default function ChatWindow({ chat, currentUserId }) {
     };
   }, [chat?.id]);
 
+  useEffect(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+
+    el.scrollTop = el.scrollHeight;
+  }, [messages, chat?.id]);
+
   if (!chat) {
     return (
       <div style={styles.card}>
@@ -114,9 +123,7 @@ export default function ChatWindow({ chat, currentUserId }) {
         throw new Error(`Failed to send message: ${res.status}`);
       }
 
-      // We do NOT push the message into state here.
-      // The server will emit "newMessage" and the listener above will handle it.
-      await res.json().catch(() => {}); // ignore body if not needed
+      await res.json().catch(() => {});
       setNewMessage("");
     } catch (err) {
       console.error(err);
@@ -141,7 +148,10 @@ export default function ChatWindow({ chat, currentUserId }) {
       </div>
 
       {/* messages */}
-      <div style={styles.messagesContainer}>
+      <div
+        style={styles.messagesContainer}
+        ref={messagesContainerRef}
+      >
         {loading && <p style={styles.hint}>Loading messages…</p>}
         {error && <div style={styles.error}>{error}</div>}
 
@@ -227,6 +237,7 @@ export default function ChatWindow({ chat, currentUserId }) {
   );
 }
 
+
 const styles = {
   card: {
     width: "100%",
@@ -271,6 +282,9 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: 10,
+
+    // dirty but same height as chatlist + usersearch
+    maxHeight: "calc(90vh - 285px)",
   },
   hint: {
     fontSize: 14,

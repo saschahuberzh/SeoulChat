@@ -1,5 +1,4 @@
-// src/components/UserSearch.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -28,7 +27,7 @@ export default function UserSearch({ onUserClick, onChatCreated }) {
         )}`,
         {
           method: "GET",
-          credentials: "include", // send JWT cookies
+          credentials: "include",
         }
       );
 
@@ -53,10 +52,8 @@ export default function UserSearch({ onUserClick, onChatCreated }) {
     try {
       const res = await fetch(`${API_BASE_URL}/chats/private`, {
         method: "POST",
-        credentials: "include", // send cookies (accessToken / refreshToken)
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: user.username }),
       });
 
@@ -64,12 +61,8 @@ export default function UserSearch({ onUserClick, onChatCreated }) {
         throw new Error(`Failed to start chat: ${res.status}`);
       }
 
-      const chat = await res.json(); // depends on your backend response
-      console.log("Chat created/retrieved:", chat);
-
-      if (onChatCreated) {
-        onChatCreated(chat, user);
-      }
+      const chat = await res.json();
+      if (onChatCreated) onChatCreated(chat, user);
     } catch (err) {
       console.error(err);
       setError(err.message || "Could not start chat.");
@@ -222,12 +215,18 @@ const styles = {
     color: "#b91c1c",
     fontSize: "13px",
   },
+
   resultsWrapper: {
     marginTop: "8px",
     display: "flex",
     flexDirection: "column",
     gap: "10px",
+
+    maxHeight: "300px",
+    overflowY: "auto",
+    paddingRight: "6px",
   },
+
   hint: {
     fontSize: "14px",
     color: "#6b7280",
@@ -251,9 +250,7 @@ const styles = {
     flex: 1,
     cursor: "pointer",
   },
-  avatarWrapper: {
-    flexShrink: 0,
-  },
+  avatarWrapper: { flexShrink: 0 },
   avatar: {
     width: "40px",
     height: "40px",
@@ -283,39 +280,19 @@ const styles = {
     gap: "6px",
     marginBottom: "4px",
   },
-  displayName: {
-    fontWeight: "600",
-    fontSize: "15px",
-    color: "#111827",
-  },
-  username: {
-    fontSize: "13px",
-    color: "#6b7280",
-  },
-  metaRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-  },
-  statusDot: {
-    width: "8px",
-    height: "8px",
-    borderRadius: "999px",
-  },
-  statusText: {
-    fontSize: "12px",
-    color: "#4b5563",
-    textTransform: "capitalize",
-  },
+  displayName: { fontWeight: 600, fontSize: 15, color: "#111827" },
+  username: { fontSize: "13px", color: "#6b7280" },
+  metaRow: { display: "flex", alignItems: "center", gap: "6px" },
+  statusDot: { width: 8, height: 8, borderRadius: "999px" },
+  statusText: { fontSize: "12px", color: "#4b5563" },
   startChatButton: {
     padding: "8px 12px",
     borderRadius: "999px",
     border: "none",
     background: "#16a34a",
-    color: "#ffffff",
+    color: "#fff",
     fontWeight: "500",
     cursor: "pointer",
     fontSize: "13px",
-    flexShrink: 0,
   },
 };
