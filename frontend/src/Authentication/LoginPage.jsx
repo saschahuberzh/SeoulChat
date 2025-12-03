@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -24,7 +24,7 @@ export default function LoginPage() {
           password,
         },
         {
-          withCredentials: true,   // <--- das ist der Schlüssel
+          withCredentials: true,
         }
       );
 
@@ -69,6 +69,22 @@ export default function LoginPage() {
           <button type="submit" className="login-btn">
             Log in
           </button>
+          <p style={{ marginTop: 12, fontSize: 14, textAlign: "center" }}>
+            No account yet?{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/register")}
+              style={{
+                border: "none",
+                background: "none",
+                color: "#2563eb",
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              Sign up
+            </button>
+          </p>
         </form>
       </div>
     </div>

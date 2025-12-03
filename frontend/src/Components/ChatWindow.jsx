@@ -1,5 +1,4 @@
-// src/components/ChatWindow.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "../socket";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -56,7 +55,6 @@ export default function ChatWindow({ chat, currentUserId }) {
     const chatId = chat.id;
 
     const handleNewMessage = (msg) => {
-      // Backend doc: msg.groupID is the chat id
       const msgChatId = msg.groupID;
 
       if (msgChatId !== chatId) return;

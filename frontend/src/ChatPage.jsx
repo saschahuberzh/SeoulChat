@@ -1,8 +1,8 @@
-// src/pages/ChatPage.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import UserSearch from "./Components/UserSearch";
 import ChatList from "./Components/ChatList";
 import ChatWindow from "./Components/ChatWindow";
+import Header from "./Components/Header";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -10,7 +10,6 @@ export default function ChatPage() {
   const [activeChat, setActiveChat] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Load the currently logged-in user
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -44,22 +43,24 @@ export default function ChatPage() {
         justifyContent: "center",
       }}
     >
-      <div style={{ width: "100%", maxWidth: 1100, display: "flex", gap: 24 }}>
-        
-        {/* Left column */}
-        <div style={{ flex: 1 }}>
-          <ChatList onChatSelect={setActiveChat} />
-          <div style={{ height: 24 }} />
-          <UserSearch onChatCreated={(chat) => setActiveChat(chat)} />
+      <div style={{ width: "100%", maxWidth: 1100 }}>
+
+        <Header currentUser={currentUser} />
+
+        <div style={{ display: "flex", gap: 24 }}>
+          <div style={{ flex: 1 }}>
+            <ChatList onChatSelect={setActiveChat} />
+            <div style={{ height: 24 }} />
+            <UserSearch onChatCreated={(chat) => setActiveChat(chat)} />
+          </div>
+          <div style={{ flex: 1, minHeight: 400 }}>
+            <ChatWindow
+              chat={activeChat}
+              currentUserId={currentUser?.id}
+            />
+          </div>
         </div>
 
-        {/* Right column */}
-        <div style={{ flex: 1, minHeight: 400 }}>
-          <ChatWindow
-            chat={activeChat}
-            currentUserId={currentUser?.id}   // THIS IS THE IMPORTANT PART
-          />
-        </div>
       </div>
     </div>
   );
