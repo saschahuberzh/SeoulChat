@@ -70,10 +70,11 @@ let io;
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: ["http://localhost:3000", "https://admin.socket.io"],
+      origin: ["http://localhost:5173", "https://admin.socket.io"],
       credentials: true
     }
   });
+
 
   instrument(io, {
     auth: false,
